@@ -20,7 +20,7 @@
                     <th>Subject</th>
                     <th>Status</th>
                     <th>Created&nbsp;at</th>
-                    <th style="width:110px;">Action</th>
+                    <th style="width:170px;">Action</th>
                 </tr>
             </thead>
             <tbody></tbody>

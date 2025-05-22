@@ -19,6 +19,7 @@ $(function () {
       <td>${t.created_at}</td>
       <td>
         <button class="btn btn-sm btn-outline-primary btn-edit">Edit</button>
+        <button class="btn btn-sm btn-outline-danger  btn-del ms-2">Delete</button>
       </td>
     </tr>`;
 
@@ -47,6 +48,21 @@ $(function () {
             $('#ticket-status').val(t.status);
             modal.show();
         });
+    });
+
+    /* ---------- Delete ---------- */
+    $tblBody.on('click', '.btn-del', function () {
+        const id = $(this).closest('tr').data('id');
+
+        if (!confirm(`Delete ticket #${id}?`)) return;
+
+        $.ajax({
+            url: `${api}/${id}`,
+            method: 'DELETE'
+        })
+            .done(() => {
+                loadTickets();       // ✨ ricarica l’intera tabella
+            });
     });
 
     /* ---------- Save (create or update) ---------- */

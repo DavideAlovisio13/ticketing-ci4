@@ -47,4 +47,18 @@ class TicketsController extends ResourceController
 
         return $this->respond($this->model->find($id));
     }
+
+    // DELETE /api/tickets/{id}
+    // DELETE /api/tickets/{id}
+    public function delete($id = null)
+    {
+        if ($id === null || !$this->model->find($id)) {
+            return $this->failNotFound('Ticket not found');
+        }
+
+        $this->model->delete($id);
+
+        // <-- questo restituisce 204 No Content
+        return $this->respondDeleted();
+    }
 }
