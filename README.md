@@ -7,7 +7,7 @@
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple.svg)](https://getbootstrap.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-![App Screenshot](screenshot.png)
+![App Screenshot](/public/Immagine%202025-05-22%20154732.png)
 
 ## 📋 Table of Contents
 
@@ -27,6 +27,7 @@
 ## ✨ Features
 
 ### 🎯 Core Functionality
+
 - **Complete CRUD Operations**: Create, Read, Update, Delete tickets
 - **Advanced Status Management**: Open, Pending, In Progress, Resolved, Closed
 - **Priority System**: Low, Medium, High, Urgent with visual indicators
@@ -35,6 +36,7 @@
 - **Rich Descriptions**: Full-text descriptions with HTML support
 
 ### 📊 Advanced Features
+
 - **Real-time Dashboard**: Live statistics and metrics
 - **Advanced Filtering**: Search by title, description, status, priority, category
 - **Pagination**: Efficient handling of large datasets
@@ -43,6 +45,7 @@
 - **Activity Logging**: Comprehensive audit trail
 
 ### 🎨 User Experience
+
 - **Responsive Design**: Mobile-first, works on all devices
 - **Modern UI**: Clean Bootstrap 5 interface with FontAwesome icons
 - **Real-time Notifications**: Toast notifications for all actions
@@ -53,12 +56,14 @@
 ## 🛠 Technology Stack
 
 ### Backend
+
 - **Framework**: [CodeIgniter 4.6+](https://codeigniter.com/)
 - **Language**: PHP 8.1+
 - **Database**: MySQL 8.0+ / MariaDB 10.4+
 - **Architecture**: MVC with Service Layer pattern
 
 ### Frontend
+
 - **CSS Framework**: [Bootstrap 5.3](https://getbootstrap.com/)
 - **JavaScript**: Modern ES6+ with async/await
 - **Icons**: [FontAwesome 6.0](https://fontawesome.com/)
@@ -66,6 +71,7 @@
 - **Build Tools**: None required (vanilla implementation)
 
 ### Development & Testing
+
 - **Testing Framework**: PHPUnit 10+
 - **Code Quality**: PSR-12 coding standards
 - **API**: RESTful JSON API
@@ -74,12 +80,14 @@
 ## 🏗 Architecture
 
 ### Design Patterns
+
 - **MVC Pattern**: Model-View-Controller architecture
 - **Service Layer**: Business logic separation
 - **Repository Pattern**: Data access abstraction
 - **Exception Handling**: Custom exceptions for error management
 
 ### Project Structure
+
 ```
 app/
 ├── Config/
@@ -118,6 +126,7 @@ tests/
 ## 🚀 Installation
 
 ### Prerequisites
+
 - PHP 8.1 or higher
 - Composer
 - MySQL 8.0+ or MariaDB 10.4+
@@ -126,23 +135,27 @@ tests/
 ### Quick Start
 
 1. **Clone the repository**
+
    ```bash
-   git clone https://github.com/yourusername/enhanced-ticket-system.git
-   cd enhanced-ticket-system
+   git clone https://github.com/DavideAlovisio13/ticket-management-system.git
+   cd ticket-management-system
    ```
 
 2. **Install dependencies**
+
    ```bash
    composer install
    ```
 
 3. **Environment setup**
+
    ```bash
    cp env .env
    ```
 
 4. **Configure database**
    Edit `.env` file:
+
    ```env
    database.default.hostname = localhost
    database.default.database = ticket_system
@@ -152,11 +165,13 @@ tests/
    ```
 
 5. **Run migrations**
+
    ```bash
    php spark migrate
    ```
 
 6. **Start development server**
+
    ```bash
    php spark serve
    ```
@@ -169,6 +184,7 @@ tests/
 For production deployment, follow these additional steps:
 
 1. **Set production environment**
+
    ```env
    CI_ENVIRONMENT = production
    ```
@@ -204,9 +220,9 @@ database.default.DBCollat = utf8mb4_general_ci
 Key configuration options in `app/Config/App.php`:
 
 ```php
-public string $baseURL = 'https://yoursite.com/';
+public string $baseURL = 'http://localhost:8080/';
 public string $indexPage = '';  # For clean URLs
-public bool $forceGlobalSecureRequests = true;  # For HTTPS
+public bool $forceGlobalSecureRequests = false;  # Set true for HTTPS
 ```
 
 ### Custom Configuration
@@ -223,6 +239,7 @@ You can customize various aspects:
 ### Basic Operations
 
 #### Creating a Ticket
+
 1. Click the "New Ticket" button
 2. Fill in the required information:
    - **Subject**: Brief description (required, min 5 characters)
@@ -233,6 +250,7 @@ You can customize various aspects:
 3. Click "Save Ticket"
 
 #### Managing Tickets
+
 - **Edit**: Click the edit button to modify ticket details
 - **Close**: Mark tickets as resolved
 - **Reopen**: Restore closed tickets to active status
@@ -240,6 +258,7 @@ You can customize various aspects:
 - **Assign**: Assign tickets to specific users
 
 #### Filtering and Search
+
 - **Text Search**: Search in subject and description fields
 - **Status Filter**: Filter by ticket status
 - **Priority Filter**: Filter by priority level
@@ -249,39 +268,48 @@ You can customize various aspects:
 ### Advanced Features
 
 #### Dashboard Statistics
+
 Real-time counters showing:
+
 - Total tickets in system
 - Open tickets requiring attention
 - In-progress tickets being worked on
 - Closed tickets completed
 
 #### Bulk Operations
+
 Select multiple tickets to perform bulk actions:
+
 - Change status for multiple tickets
 - Assign multiple tickets to a user
 - Delete multiple tickets
 
 #### API Integration
+
 The system provides a full RESTful API for integration with other systems.
 
 ## 🔌 API Documentation
 
 ### Base URL
+
 ```
-https://yoursite.com/api/tickets
+http://localhost:8080/api/tickets
 ```
 
 ### Authentication
+
 Currently uses session-based authentication. API key authentication can be added.
 
 ### Endpoints
 
 #### Get All Tickets
+
 ```http
 GET /api/tickets
 ```
 
 **Query Parameters:**
+
 - `page` (int): Page number for pagination
 - `per_page` (int): Items per page (default: 10)
 - `status` (string): Filter by status
@@ -291,6 +319,7 @@ GET /api/tickets
 - `sort_order` (string): ASC or DESC
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -318,11 +347,13 @@ GET /api/tickets
 ```
 
 #### Get Single Ticket
+
 ```http
 GET /api/tickets/{id}
 ```
 
 #### Create Ticket
+
 ```http
 POST /api/tickets
 Content-Type: application/json
@@ -336,6 +367,7 @@ Content-Type: application/json
 ```
 
 #### Update Ticket
+
 ```http
 PUT /api/tickets/{id}
 Content-Type: application/json
@@ -347,6 +379,7 @@ Content-Type: application/json
 ```
 
 #### Delete Ticket
+
 ```http
 DELETE /api/tickets/{id}
 ```
@@ -354,6 +387,7 @@ DELETE /api/tickets/{id}
 #### Special Operations
 
 **Assign Ticket:**
+
 ```http
 POST /api/tickets/{id}/assign
 Content-Type: application/json
@@ -364,16 +398,19 @@ Content-Type: application/json
 ```
 
 **Close Ticket:**
+
 ```http
 POST /api/tickets/{id}/close
 ```
 
 **Reopen Ticket:**
+
 ```http
 POST /api/tickets/{id}/reopen
 ```
 
 **Get Statistics:**
+
 ```http
 GET /api/tickets/stats
 ```
@@ -391,6 +428,7 @@ All endpoints return consistent error responses:
 ```
 
 Common HTTP status codes:
+
 - `200`: Success
 - `201`: Created
 - `204`: No Content (for deletions)
@@ -419,6 +457,7 @@ composer test
 ### Test Coverage
 
 The test suite covers:
+
 - **Model validation**: All validation rules and edge cases
 - **Service layer**: Business logic and error handling
 - **CRUD operations**: Create, read, update, delete functionality
@@ -443,7 +482,7 @@ class MyTest extends CIUnitTestCase
     {
         $service = new TicketService();
         $result = $service->someMethod();
-        
+
         $this->assertTrue($result);
     }
 }
@@ -456,17 +495,20 @@ class MyTest extends CIUnitTestCase
 The frontend is built with modern web technologies:
 
 #### Responsive Design
+
 - Mobile-first approach
 - Adaptive layouts for all screen sizes
 - Touch-friendly interfaces
 
 #### Interactive Elements
+
 - **Loading States**: Visual feedback during operations
 - **Toast Notifications**: Non-intrusive success/error messages
 - **Modal Dialogs**: Context-aware forms and confirmations
 - **Progress Indicators**: Real-time operation progress
 
 #### Accessibility
+
 - ARIA labels for screen readers
 - Keyboard navigation support
 - High contrast mode compatibility
@@ -478,22 +520,23 @@ The frontend uses a modern class-based approach:
 
 ```javascript
 class TicketManager {
-    constructor() {
-        this.api = '/api/tickets';
-        this.init();
-    }
-    
-    async loadTickets() {
-        // Fetch and display tickets
-    }
-    
-    async createTicket(data) {
-        // Create new ticket
-    }
+  constructor() {
+    this.api = "/api/tickets";
+    this.init();
+  }
+
+  async loadTickets() {
+    // Fetch and display tickets
+  }
+
+  async createTicket(data) {
+    // Create new ticket
+  }
 }
 ```
 
 #### Key Features
+
 - **ES6+ Syntax**: Modern JavaScript features
 - **Async/Await**: Clean asynchronous code
 - **Error Handling**: Comprehensive error management
@@ -541,6 +584,7 @@ CREATE TABLE `tickets` (
 ### Indexes
 
 Optimized indexes for performance:
+
 - Primary key on `id`
 - Index on `status` for filtering
 - Index on `priority` for filtering
@@ -553,9 +597,11 @@ Optimized indexes for performance:
 ### Adding New Features
 
 #### Custom Fields
+
 To add new fields to tickets:
 
 1. Create a migration:
+
    ```bash
    php spark make:migration AddCustomFieldToTickets
    ```
@@ -565,6 +611,7 @@ To add new fields to tickets:
 4. Update API documentation
 
 #### Custom Status Types
+
 To add new status options:
 
 1. Modify the database enum
@@ -573,6 +620,7 @@ To add new status options:
 4. Update validation rules
 
 #### Email Notifications
+
 To add email notifications:
 
 1. Configure SMTP settings
@@ -624,17 +672,20 @@ We welcome contributions! Please follow these guidelines:
 ## 📞 Support
 
 ### Documentation
+
 - [CodeIgniter 4 Documentation](https://codeigniter.com/user_guide/)
 - [Bootstrap Documentation](https://getbootstrap.com/docs/)
 - [FontAwesome Icons](https://fontawesome.com/icons)
 
 ### Community
+
 - GitHub Issues for bug reports
 - GitHub Discussions for questions
 - Stack Overflow with tag `codeigniter4`
 
 ### Professional Support
-For commercial support or custom development, please contact [your-email@domain.com].
+
+For commercial support or custom development, please contact [davidechatgpta@gmail.com](mailto:davidechatgpta@gmail.com).
 
 ## 📄 License
 
@@ -643,7 +694,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ```
 MIT License
 
-Copyright (c) 2024 Your Name
+Copyright (c) 2025 Davide Alovisio
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -675,6 +726,7 @@ SOFTWARE.
 ## 🚀 Roadmap
 
 ### Upcoming Features
+
 - [ ] User authentication and authorization
 - [ ] File attachments for tickets
 - [ ] Email notifications
@@ -685,6 +737,7 @@ SOFTWARE.
 - [ ] Integration with popular tools (Slack, Teams, etc.)
 
 ### Version History
+
 - **v1.0.0**: Initial release with basic CRUD
 - **v2.0.0**: Enhanced UI and API improvements
 - **v2.1.0**: Advanced filtering and statistics
@@ -692,6 +745,6 @@ SOFTWARE.
 
 ---
 
-**Made with ❤️ and CodeIgniter 4**
+**Made with ❤️ and CodeIgniter 4 by [Davide Alovisio](https://github.com/DavideAlovisio13)**
 
-For questions or support, please open an issue on GitHub or contact the maintainers.
+For questions or support, please open an issue on GitHub or contact the maintainer at [davidechatgpta@gmail.com](mailto:davidechatgpta@gmail.com).
