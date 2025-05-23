@@ -3,29 +3,55 @@
 use CodeIgniter\Router\RouteCollection;
 
 /**
- * @var RouteCollection $routes
+ * ------------------------------------------------------------------
+ * Definizione delle rotte dell’applicazione
+ * ------------------------------------------------------------------
+ *
+ * @var RouteCollection $routes  Iniettata da CodeIgniter al boot.
  */
 
-// Main page
+// ---------------------------------------------------------------
+// Pagina principale (frontend SPA / landing page)
+// ---------------------------------------------------------------
 $routes->get('/', 'TicketsPage::index');
 
-// API Routes Group
-$routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($routes) {
+// ---------------------------------------------------------------
+// Gruppo di rotte per l’API RESTful
+// prefisso /api e namespace specifico dei controller API
+// ---------------------------------------------------------------
+$routes->group(
+    'api',
+    ['namespace' => 'App\Controllers\Api'],
+    static function ($routes) {
 
-    // Tickets resource routes
-    $routes->resource('tickets', ['controller' => 'TicketsController']);
+        // ---------------------------
+        // Rotte RESTful “resource”
+        //   GET    /api/tickets
+        //   POST   /api/tickets
+        //   GET    /api/tickets/{id}
+        //   PUT    /api/tickets/{id}
+        //   PATCH  /api/tickets/{id}
+        //   DELETE /api/tickets/{id}
+        // ---------------------------
+        $routes->resource('tickets', ['controller' => 'TicketsController']);
 
-    // Additional ticket routes
-    $routes->post('tickets/(:num)/assign', 'TicketsController::assign/$1');
-    $routes->post('tickets/(:num)/close', 'TicketsController::close/$1');
-    $routes->post('tickets/(:num)/reopen', 'TicketsController::reopen/$1');
+        // ---------------------------
+        // Rotte aggiuntive legate ai ticket
+        // ---------------------------
+        $routes->post('tickets/(:num)/assign', 'TicketsController::assign/$1');  // Assegna ticket a un utente
+        $routes->post('tickets/(:num)/close',  'TicketsController::close/$1');   // Chiude ticket
+        $routes->post('tickets/(:num)/reopen', 'TicketsController::reopen/$1');  // Riapre ticket
 
-    // Statistics route
-    $routes->get('tickets/stats', 'TicketsController::stats');
+        // Report statistici (p. es. count per stato, tempo medio ecc.)
+        $routes->get('tickets/stats', 'TicketsController::stats');
 
-    // User tickets route
-    $routes->get('users/(:num)/tickets', 'TicketsController::userTickets/$1');
-});
+        // Lista ticket per specifico utente
+        $routes->get('users/(:num)/tickets', 'TicketsController::userTickets/$1');
+    }
+);
 
-// Web routes for the main interface
+// ---------------------------------------------------------------
+// Rotte web (interfaccia principale, non API)
+// Sovrapposte allo stesso controller in namespace App\Controllers
+// ---------------------------------------------------------------
 $routes->resource('tickets', ['controller' => 'TicketsController']);

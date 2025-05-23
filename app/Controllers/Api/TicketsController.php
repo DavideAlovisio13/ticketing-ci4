@@ -7,44 +7,67 @@ use App\Exceptions\TicketException;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\RESTful\ResourceController;
 
+/**
+ * --------------------------------------------------------------------
+ * TicketsController (REST API)
+ * --------------------------------------------------------------------
+ * Espone endpoint CRUD e azioni custom (assign/close/reopen) per i
+ * ticket di assistenza. Tutte le risposte sono in formato JSON.
+ * L’implementazione delega la business logic a TicketService,
+ * centralizzando così la gestione di validazioni e eccezioni.
+ */
 class TicketsController extends ResourceController
 {
+    /**
+     * @var string Formato di risposta predefinito (JSON)
+     */
     protected $format = 'json';
+
+    /**
+     * Service layer responsabile della logica di dominio.
+     */
     protected TicketService $ticketService;
-    
+
     public function __construct()
     {
+        // Iniezione “manuale” del service (si potrebbe usare DI container)
         $this->ticketService = new TicketService();
     }
-    
+
     /**
+     * ----------------------------------------------------------------
      * GET /api/tickets
-     * Get all tickets with pagination and filters
+     * ----------------------------------------------------------------
+     * Ritorna elenco paginato di ticket (con possibili filtri).
+     * Parametri query es.: page, per_page, status, search ...
      */
     public function index(): ResponseInterface
     {
         try {
-            $params = $this->request->getGet();
+            $params = $this->request->getGet();            // Query string
             $result = $this->ticketService->getAllTickets($params);
-            
+
             return $this->respond([
-                'status' => 'success',
-                'data' => $result['data'],
+                'status'     => 'success',
+                'data'       => $result['data'],
                 'pagination' => [
-                    'total' => $result['total'],
-                    'page' => $result['page'],
-                    'per_page' => $result['per_page'],
-                    'total_pages' => $result['total_pages']
-                ]
+                    'total'       => $result['total'],
+                    'page'        => $result['page'],
+                    'per_page'    => $result['per_page'],
+                    'total_pages' => $result['total_pages'],
+                ],
             ]);
         } catch (TicketException $e) {
+            // Errori specifici dominio → fail()
             return $this->fail($e->getMessage(), $e->getStatusCode());
         }
     }
-    
+
     /**
+     * ----------------------------------------------------------------
      * GET /api/tickets/{id}
-     * Get specific ticket
+     * ----------------------------------------------------------------
+     * Ritorna un singolo ticket in base all’ID.
      */
     public function show($id = null): ResponseInterface
     {
@@ -52,46 +75,49 @@ class TicketsController extends ResourceController
             if (!$id || !is_numeric($id)) {
                 return $this->failValidationErrors('Invalid ticket ID');
             }
-            
-            $ticket = $this->ticketService->getTicketById((int)$id);
-            
+
+            $ticket = $this->ticketService->getTicketById((int) $id);
+
             return $this->respond([
                 'status' => 'success',
-                'data' => $ticket
+                'data'   => $ticket,
             ]);
         } catch (TicketException $e) {
             return $this->fail($e->getMessage(), $e->getStatusCode());
         }
     }
-    
+
     /**
+     * ----------------------------------------------------------------
      * POST /api/tickets
-     * Create new ticket
+     * ----------------------------------------------------------------
+     * Crea un nuovo ticket. Accetta payload JSON o form-urlencoded.
      */
     public function create(): ResponseInterface
     {
         try {
             $input = $this->getRequestInput();
-            
             if (empty($input)) {
                 return $this->failValidationErrors('No data provided');
             }
-            
+
             $ticket = $this->ticketService->createTicket($input);
-            
+
             return $this->respondCreated([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Ticket created successfully',
-                'data' => $ticket
+                'data'    => $ticket,
             ]);
         } catch (TicketException $e) {
             return $this->fail($e->getMessage(), $e->getStatusCode());
         }
     }
-    
+
     /**
+     * ----------------------------------------------------------------
      * PUT /api/tickets/{id}
-     * Update existing ticket
+     * ----------------------------------------------------------------
+     * Aggiorna un ticket esistente.
      */
     public function update($id = null): ResponseInterface
     {
@@ -99,28 +125,29 @@ class TicketsController extends ResourceController
             if (!$id || !is_numeric($id)) {
                 return $this->failValidationErrors('Invalid ticket ID');
             }
-            
+
             $input = $this->getRequestInput();
-            
             if (empty($input)) {
                 return $this->failValidationErrors('No data provided');
             }
-            
-            $ticket = $this->ticketService->updateTicket((int)$id, $input);
-            
+
+            $ticket = $this->ticketService->updateTicket((int) $id, $input);
+
             return $this->respond([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Ticket updated successfully',
-                'data' => $ticket
+                'data'    => $ticket,
             ]);
         } catch (TicketException $e) {
             return $this->fail($e->getMessage(), $e->getStatusCode());
         }
     }
-    
+
     /**
+     * ----------------------------------------------------------------
      * DELETE /api/tickets/{id}
-     * Delete ticket
+     * ----------------------------------------------------------------
+     * Elimina un ticket.
      */
     public function delete($id = null): ResponseInterface
     {
@@ -128,21 +155,24 @@ class TicketsController extends ResourceController
             if (!$id || !is_numeric($id)) {
                 return $this->failValidationErrors('Invalid ticket ID');
             }
-            
-            $this->ticketService->deleteTicket((int)$id);
-            
+
+            $this->ticketService->deleteTicket((int) $id);
+
             return $this->respondDeleted([
-                'status' => 'success',
-                'message' => 'Ticket deleted successfully'
+                'status'  => 'success',
+                'message' => 'Ticket deleted successfully',
             ]);
         } catch (TicketException $e) {
             return $this->fail($e->getMessage(), $e->getStatusCode());
         }
     }
-    
+
     /**
+     * ----------------------------------------------------------------
      * POST /api/tickets/{id}/assign
-     * Assign ticket to user
+     * ----------------------------------------------------------------
+     * Assegna un ticket a un utente.
+     * Richiede nel body: { "user_id": int }
      */
     public function assign($id = null): ResponseInterface
     {
@@ -150,28 +180,29 @@ class TicketsController extends ResourceController
             if (!$id || !is_numeric($id)) {
                 return $this->failValidationErrors('Invalid ticket ID');
             }
-            
+
             $input = $this->getRequestInput();
-            
             if (empty($input['user_id'])) {
                 return $this->failValidationErrors('User ID is required');
             }
-            
-            $ticket = $this->ticketService->assignTicket((int)$id, (int)$input['user_id']);
-            
+
+            $ticket = $this->ticketService->assignTicket((int) $id, (int) $input['user_id']);
+
             return $this->respond([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Ticket assigned successfully',
-                'data' => $ticket
+                'data'    => $ticket,
             ]);
         } catch (TicketException $e) {
             return $this->fail($e->getMessage(), $e->getStatusCode());
         }
     }
-    
+
     /**
+     * ----------------------------------------------------------------
      * POST /api/tickets/{id}/close
-     * Close ticket
+     * ----------------------------------------------------------------
+     * Chiude un ticket (cambia stato).
      */
     public function close($id = null): ResponseInterface
     {
@@ -179,22 +210,24 @@ class TicketsController extends ResourceController
             if (!$id || !is_numeric($id)) {
                 return $this->failValidationErrors('Invalid ticket ID');
             }
-            
-            $ticket = $this->ticketService->closeTicket((int)$id);
-            
+
+            $ticket = $this->ticketService->closeTicket((int) $id);
+
             return $this->respond([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Ticket closed successfully',
-                'data' => $ticket
+                'data'    => $ticket,
             ]);
         } catch (TicketException $e) {
             return $this->fail($e->getMessage(), $e->getStatusCode());
         }
     }
-    
+
     /**
+     * ----------------------------------------------------------------
      * POST /api/tickets/{id}/reopen
-     * Reopen ticket
+     * ----------------------------------------------------------------
+     * Riapre un ticket chiuso.
      */
     public function reopen($id = null): ResponseInterface
     {
@@ -202,40 +235,46 @@ class TicketsController extends ResourceController
             if (!$id || !is_numeric($id)) {
                 return $this->failValidationErrors('Invalid ticket ID');
             }
-            
-            $ticket = $this->ticketService->reopenTicket((int)$id);
-            
+
+            $ticket = $this->ticketService->reopenTicket((int) $id);
+
             return $this->respond([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Ticket reopened successfully',
-                'data' => $ticket
+                'data'    => $ticket,
             ]);
         } catch (TicketException $e) {
             return $this->fail($e->getMessage(), $e->getStatusCode());
         }
     }
-    
+
     /**
+     * ----------------------------------------------------------------
      * GET /api/tickets/stats
-     * Get dashboard statistics
+     * ----------------------------------------------------------------
+     * Ritorna statistiche aggregate per la dashboard
+     * (totale per stato, tempo medio di chiusura, ecc.).
      */
     public function stats(): ResponseInterface
     {
         try {
             $stats = $this->ticketService->getDashboardStats();
-            
+
             return $this->respond([
                 'status' => 'success',
-                'data' => $stats
+                'data'   => $stats,
             ]);
         } catch (TicketException $e) {
             return $this->fail($e->getMessage(), $e->getStatusCode());
         }
     }
-    
+
     /**
+     * ----------------------------------------------------------------
      * GET /api/users/{userId}/tickets
-     * Get tickets by user
+     * ----------------------------------------------------------------
+     * Ritorna i ticket relativi a un singolo utente.
+     * Query param facoltativo `relation` (assigned|created|all).
      */
     public function userTickets($userId = null): ResponseInterface
     {
@@ -243,32 +282,37 @@ class TicketsController extends ResourceController
             if (!$userId || !is_numeric($userId)) {
                 return $this->failValidationErrors('Invalid user ID');
             }
-            
+
+            // Se non specificato → 'assigned'
             $relation = $this->request->getGet('relation') ?? 'assigned';
-            $tickets = $this->ticketService->getTicketsByUser((int)$userId, $relation);
-            
+            $tickets  = $this->ticketService->getTicketsByUser((int) $userId, $relation);
+
             return $this->respond([
                 'status' => 'success',
-                'data' => $tickets
+                'data'   => $tickets,
             ]);
         } catch (TicketException $e) {
             return $this->fail($e->getMessage(), $e->getStatusCode());
         }
     }
-    
+
     /**
-     * Helper method to get request input with proper validation
+     * ----------------------------------------------------------------
+     * Helper: Ottiene l’input della richiesta (JSON o form-data)
+     * ----------------------------------------------------------------
+     * Restituisce array vuoto se il body è assente/non valido.
      */
     private function getRequestInput(): array
     {
         $contentType = $this->request->getHeaderLine('Content-Type');
-        
+
+        // Parsing adattivo in base al Content-Type
         if (strpos($contentType, 'application/json') !== false) {
-            $input = $this->request->getJSON(true);
+            $input = $this->request->getJSON(true); // true → array assoc.
         } else {
-            $input = $this->request->getPost();
+            $input = $this->request->getPost();     // x-www-form-urlencoded
         }
-        
+
         return $input ?: [];
     }
 }

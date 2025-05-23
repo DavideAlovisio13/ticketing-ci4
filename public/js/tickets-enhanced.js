@@ -1,35 +1,59 @@
+/**
+ * --------------------------------------------------------------------
+ * TicketManager – Front-End Controller (vanilla JS + Bootstrap)
+ * --------------------------------------------------------------------
+ * Responsabilità:
+ *   • Orchestrare tutte le operazioni CRUD e dashboard via API REST.
+ *   • Gestire stato locale (paginazione, filtri) e interazioni UI
+ *     (modale, toast, loading spinner, ecc.).
+ *   • Delegare alla sorgente back-end /api/tickets la persistenza.
+ *
+ * NOTA BENE: il codice applicativo è intatto; sono stati aggiunti
+ * unicamente commenti per documentare logica e best practice.
+ */
 class TicketManager {
     constructor() {
+        // Endpoint REST base
         this.api = '/api/tickets';
+
+        // Stato di paginazione
         this.currentPage = 1;
         this.perPage = 10;
+
+        // Stato filtri attivi
         this.filters = {};
 
+        // Riferimenti DOM / Bootstrap
         this.modal = new bootstrap.Modal('#ticketModal');
         this.form = document.getElementById('ticket-form');
         this.tbody = document.getElementById('tickets-tbody');
 
+        // Bootstrap dell’app
         this.init();
     }
 
+    /* --------------------------------------------------------------
+       INIZIALIZZAZIONE
+       -------------------------------------------------------------- */
     init() {
-        this.bindEvents();
-        this.loadDashboardStats();
-        this.loadTickets();
+        this.bindEvents();        // Event delegation & listeners
+        this.loadDashboardStats(); // Statistiche iniziali
+        this.loadTickets();       // Prima fetch paginata
     }
 
+    /* Collega gli handler a UI e componenti dinamici */
     bindEvents() {
-        // Create new ticket
+        // Nuovo ticket (apre modal vuota)
         document.getElementById('btn-new').addEventListener('click', () => {
             this.showCreateModal();
         });
 
-        // Form submission
+        // Submit modale (create / update)
         this.form.addEventListener('submit', (e) => {
             this.handleFormSubmit(e);
         });
 
-        // Filter changes
+        // Gestione filtro/ordinamento (debounced)
         const filterElements = ['search', 'filter-status', 'filter-priority', 'sort-by', 'sort-order'];
         filterElements.forEach(id => {
             document.getElementById(id).addEventListener('change', () => {
@@ -37,12 +61,12 @@ class TicketManager {
             });
         });
 
-        // Reset filters
+        // Reset filtri
         document.getElementById('reset-filters').addEventListener('click', () => {
             this.resetFilters();
         });
 
-        // Table actions delegation
+        // Delegazione azioni della table (edit/close/reopen/delete)
         this.tbody.addEventListener('click', (e) => {
             const action = e.target.dataset.action;
             const ticketId = e.target.closest('tr')?.dataset.id;
@@ -53,6 +77,9 @@ class TicketManager {
         });
     }
 
+    /* --------------------------------------------------------------
+       DASHBOARD STATISTICS
+       -------------------------------------------------------------- */
     async loadDashboardStats() {
         try {
             const response = await this.makeRequest(`${this.api}/stats`);
@@ -62,23 +89,29 @@ class TicketManager {
         }
     }
 
+    /* Aggiorna i contatori della dashboard */
     updateDashboardStats(stats) {
         document.getElementById('total-tickets').textContent = stats.total;
         document.getElementById('open-tickets').textContent = stats.by_status.open || 0;
         document.getElementById('in-progress-tickets').textContent = stats.by_status.in_progress || 0;
         document.getElementById('closed-tickets').textContent = stats.by_status.closed || 0;
 
+        // Rende visibile la sezione
         document.getElementById('dashboard-stats').style.display = 'flex';
     }
 
+    /* --------------------------------------------------------------
+       LISTA TICKETS (fetch + render + pagination)
+       -------------------------------------------------------------- */
     async loadTickets() {
         try {
             this.setLoadingState(true);
 
+            // Query string costruita con URLSearchParams
             const params = new URLSearchParams({
                 page: this.currentPage,
                 per_page: this.perPage,
-                ...this.filters
+                ...this.filters,
             });
 
             const response = await this.makeRequest(`${this.api}?${params}`);
@@ -93,6 +126,7 @@ class TicketManager {
         }
     }
 
+    /* Rende la tabella tickets (o placeholder se vuota) */
     renderTickets(tickets) {
         if (!tickets || tickets.length === 0) {
             this.tbody.innerHTML = `
@@ -109,6 +143,7 @@ class TicketManager {
         this.tbody.innerHTML = tickets.map(ticket => this.createTicketRow(ticket)).join('');
     }
 
+    /* Template HTML per una riga di ticket */
     createTicketRow(ticket) {
         const statusClass = `status-${ticket.status}`;
         const priorityClass = `priority-${ticket.priority}`;
@@ -155,6 +190,7 @@ class TicketManager {
         `;
     }
 
+    /* Costruisce la paginazione (Prev / numeri / Next) */
     renderPagination(pagination) {
         if (pagination.total_pages <= 1) {
             document.getElementById('pagination-nav').style.display = 'none';
@@ -164,14 +200,14 @@ class TicketManager {
         const paginationEl = document.getElementById('pagination');
         const pages = [];
 
-        // Previous button
+        // Previous
         pages.push(`
             <li class="page-item ${pagination.page === 1 ? 'disabled' : ''}">
                 <button class="page-link" data-page="${pagination.page - 1}">Previous</button>
             </li>
         `);
 
-        // Page numbers
+        // Numeri pagina con ellissi
         for (let i = 1; i <= pagination.total_pages; i++) {
             if (i === pagination.page || i === 1 || i === pagination.total_pages ||
                 (i >= pagination.page - 2 && i <= pagination.page + 2)) {
@@ -185,7 +221,7 @@ class TicketManager {
             }
         }
 
-        // Next button
+        // Next
         pages.push(`
             <li class="page-item ${pagination.page === pagination.total_pages ? 'disabled' : ''}">
                 <button class="page-link" data-page="${pagination.page + 1}">Next</button>
@@ -195,7 +231,7 @@ class TicketManager {
         paginationEl.innerHTML = pages.join('');
         document.getElementById('pagination-nav').style.display = 'block';
 
-        // Bind pagination events
+        // Delegazione click sui pulsanti pagina
         paginationEl.addEventListener('click', (e) => {
             if (e.target.dataset.page) {
                 this.currentPage = parseInt(e.target.dataset.page);
@@ -204,6 +240,9 @@ class TicketManager {
         });
     }
 
+    /* --------------------------------------------------------------
+       AZIONI DA TABELLONE (edit / close / reopen / delete)
+       -------------------------------------------------------------- */
     async handleTableAction(action, ticketId, button) {
         const originalHtml = button.innerHTML;
 
@@ -233,6 +272,7 @@ class TicketManager {
         }
     }
 
+    /* Modale di modifica (pre-compila campi) */
     async showEditModal(ticketId) {
         try {
             const response = await this.makeRequest(`${this.api}/${ticketId}`);
@@ -252,12 +292,16 @@ class TicketManager {
         }
     }
 
+    /* Modale di creazione (form reset) */
     showCreateModal() {
         this.resetForm();
         document.getElementById('modal-title').textContent = 'New Ticket';
         this.modal.show();
     }
 
+    /* --------------------------------------------------------------
+       GESTIONE SUBMIT FORM (create / update)
+       -------------------------------------------------------------- */
     async handleFormSubmit(e) {
         e.preventDefault();
 
@@ -268,16 +312,13 @@ class TicketManager {
             submitBtn.disabled = true;
             spinner.classList.remove('d-none');
 
-            const formData = new FormData(this.form);
-            const data = Object.fromEntries(formData.entries());
-
-            // Get values from form elements
+            // Costruisce oggetto ticket dal form
             const ticketData = {
                 subject: document.getElementById('ticket-subject').value,
                 description: document.getElementById('ticket-description').value,
                 status: document.getElementById('ticket-status').value,
                 priority: document.getElementById('ticket-priority').value,
-                category: document.getElementById('ticket-category').value
+                category: document.getElementById('ticket-category').value,
             };
 
             const ticketId = document.getElementById('ticket-id').value;
@@ -302,11 +343,14 @@ class TicketManager {
         }
     }
 
+    /* --------------------------------------------------------------
+       CRUD WRAPPERS (POST, PUT, POST actions, DELETE)
+       -------------------------------------------------------------- */
     async createTicket(data) {
         return this.makeRequest(this.api, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
     }
 
@@ -314,7 +358,7 @@ class TicketManager {
         return this.makeRequest(`${this.api}/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
     }
 
@@ -345,8 +389,10 @@ class TicketManager {
         this.loadDashboardStats();
     }
 
+    /* --------------------------------------------------------------
+       FILTRI & RICERCA (debounced)
+       -------------------------------------------------------------- */
     handleFilterChange() {
-        // Debounce filter changes
         clearTimeout(this.filterTimeout);
         this.filterTimeout = setTimeout(() => {
             this.updateFilters();
@@ -355,21 +401,22 @@ class TicketManager {
         }, 300);
     }
 
+    /* Aggiorna this.filters rimuovendo chiavi vuote */
     updateFilters() {
         this.filters = {
             search: document.getElementById('search').value,
             status: document.getElementById('filter-status').value,
             priority: document.getElementById('filter-priority').value,
             sort_by: document.getElementById('sort-by').value,
-            sort_order: document.getElementById('sort-order').value
+            sort_order: document.getElementById('sort-order').value,
         };
 
-        // Remove empty filters
         Object.keys(this.filters).forEach(key => {
             if (!this.filters[key]) delete this.filters[key];
         });
     }
 
+    /* Reset UI + stato filtri */
     resetFilters() {
         document.getElementById('search').value = '';
         document.getElementById('filter-status').value = '';
@@ -382,28 +429,29 @@ class TicketManager {
         this.loadTickets();
     }
 
+    /* Reset campi form modale */
     resetForm() {
         this.form.reset();
         document.getElementById('ticket-id').value = '';
         document.getElementById('ticket-priority').value = 'medium';
     }
 
+    /* --------------------------------------------------------------
+       UTILITIES
+       -------------------------------------------------------------- */
     setLoadingState(loading) {
         const table = document.getElementById('tickets-table');
-        if (loading) {
-            table.classList.add('loading');
-        } else {
-            table.classList.remove('loading');
-        }
+        table.classList.toggle('loading', loading);
     }
 
+    /* Wrapper fetch con JSON + error handling */
     async makeRequest(url, options = {}) {
         const response = await fetch(url, {
             headers: {
                 'Accept': 'application/json',
-                ...options.headers
+                ...options.headers,
             },
-            ...options
+            ...options,
         });
 
         const data = await response.json();
@@ -415,6 +463,7 @@ class TicketManager {
         return data;
     }
 
+    /* Toast Bootstrap 5 evoluto con icone FA */
     showToast(message, type = 'info') {
         const toastContainer = document.querySelector('.toast-container');
         const toastId = 'toast-' + Date.now();
@@ -423,14 +472,14 @@ class TicketManager {
             success: 'bg-success',
             error: 'bg-danger',
             warning: 'bg-warning',
-            info: 'bg-info'
+            info: 'bg-info',
         }[type] || 'bg-info';
 
         const icon = {
             success: 'fas fa-check-circle',
             error: 'fas fa-exclamation-circle',
             warning: 'fas fa-exclamation-triangle',
-            info: 'fas fa-info-circle'
+            info: 'fas fa-info-circle',
         }[type] || 'fas fa-info-circle';
 
         const toastHtml = `
@@ -449,46 +498,44 @@ class TicketManager {
         const toast = new bootstrap.Toast(toastElement, { delay: 5000 });
         toast.show();
 
-        // Remove toast from DOM after it's hidden
         toastElement.addEventListener('hidden.bs.toast', () => {
             toastElement.remove();
         });
     }
 
+    /* Escape HTML per prevenire XSS in output non-trusted */
     escapeHtml(text) {
-        const map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
         return text.replace(/[&<>"']/g, m => map[m]);
     }
 
+    /* Mapping status → label umana */
     formatStatus(status) {
         const statusMap = {
             open: 'Open',
             pending: 'Pending',
             in_progress: 'In Progress',
             resolved: 'Resolved',
-            closed: 'Closed'
+            closed: 'Closed',
         };
         return statusMap[status] || status;
     }
 
+    /* Mapping priority → label umana */
     formatPriority(priority) {
         const priorityMap = {
             low: 'Low',
             medium: 'Medium',
             high: 'High',
-            urgent: 'Urgent'
+            urgent: 'Urgent',
         };
         return priorityMap[priority] || priority;
     }
 }
 
-// Initialize the application when DOM is loaded
+/* --------------------------------------------------------------
+   Bootstrap dell’applicazione quando il DOM è pronto
+   -------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
     new TicketManager();
 });

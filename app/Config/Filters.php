@@ -13,57 +13,66 @@ use CodeIgniter\Filters\PageCache;
 use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
 
+/**
+ * --------------------------------------------------------------------
+ * Filtro globale dell’applicazione
+ * --------------------------------------------------------------------
+ * Questa classe estende la configurazione dei filtri di CodeIgniter 4
+ * permettendo di definire alias, filtri obbligatori, globali e per
+ * metodo/URI.  
+ * **NB:** sono stati aggiunti solo commenti; la logica originale resta
+ * invariata.
+ */
 class Filters extends BaseFilters
 {
     /**
-     * Configures aliases for Filter classes to
-     * make reading things nicer and simpler.
+     * -----------------------------------------------------------------
+     * Alias dei filtri
+     * -----------------------------------------------------------------
+     * Mappano un nome leggibile (key) al fully-qualified class name
+     * del filtro. Usare l’alias nei gruppi facilita la lettura.
      *
      * @var array<string, class-string|list<class-string>>
-     *
-     * [filter_name => classname]
-     * or [filter_name => [classname1, classname2, ...]]
      */
     public array $aliases = [
-        'csrf'          => CSRF::class,
-        'toolbar'       => DebugToolbar::class,
-        'honeypot'      => Honeypot::class,
-        'invalidchars'  => InvalidChars::class,
-        'secureheaders' => SecureHeaders::class,
-        'cors'          => Cors::class,
-        'forcehttps'    => ForceHTTPS::class,
-        'pagecache'     => PageCache::class,
-        'performance'   => PerformanceMetrics::class,
+        'csrf'          => CSRF::class,          // Protezione CSRF
+        'toolbar'       => DebugToolbar::class,  // Toolbar di debug
+        'honeypot'      => Honeypot::class,      // Campo honeypot anti-bot
+        'invalidchars'  => InvalidChars::class,  // Rileva caratteri non validi
+        'secureheaders' => SecureHeaders::class, // Security headers
+        'cors'          => Cors::class,          // Gestione CORS
+        'forcehttps'    => ForceHTTPS::class,    // Reindirizza a HTTPS
+        'pagecache'     => PageCache::class,     // Cache delle pagine
+        'performance'   => PerformanceMetrics::class, // Metriche prestazioni
     ];
 
     /**
-     * List of special required filters.
-     *
-     * The filters listed here are special. They are applied before and after
-     * other kinds of filters, and always applied even if a route does not exist.
-     *
-     * Filters set by default provide framework functionality. If removed,
-     * those functions will no longer work.
-     *
-     * @see https://codeigniter.com/user_guide/incoming/filters.html#provided-filters
+     * -----------------------------------------------------------------
+     * Filtri richiesti (sempre eseguiti)
+     * -----------------------------------------------------------------
+     * Vengono applicati prima/after di tutti gli altri, anche se la
+     * route non esiste. Rimuoverli disabilita funzioni chiave del
+     * framework.
      *
      * @var array{before: list<string>, after: list<string>}
      */
     public array $required = [
         'before' => [
-            'forcehttps', // Force Global Secure Requests
-            'pagecache',  // Web Page Caching
+            'forcehttps', // Forza HTTPS globalmente
+            'pagecache',  // Cache delle pagine
         ],
         'after' => [
-            'pagecache',   // Web Page Caching
-            'performance', // Performance Metrics
-            'toolbar',     // Debug Toolbar
+            'pagecache',   // Scrive la cache dopo la risposta
+            'performance', // Registra metriche prestazionali
+            'toolbar',     // Aggiunge Debug Toolbar
         ],
     ];
 
     /**
-     * List of filter aliases that are always
-     * applied before and after every request.
+     * -----------------------------------------------------------------
+     * Filtri globali opzionali
+     * -----------------------------------------------------------------
+     * Applicati a ogni richiesta HTTP (se abilitati).
      *
      * @var array<string, array<string, array<string, string>>>|array<string, list<string>>
      */
@@ -80,26 +89,24 @@ class Filters extends BaseFilters
     ];
 
     /**
-     * List of filter aliases that works on a
-     * particular HTTP method (GET, POST, etc.).
-     *
-     * Example:
-     * 'POST' => ['foo', 'bar']
-     *
-     * If you use this, you should disable auto-routing because auto-routing
-     * permits any HTTP method to access a controller. Accessing the controller
-     * with a method you don't expect could bypass the filter.
+     * -----------------------------------------------------------------
+     * Filtri per metodo HTTP
+     * -----------------------------------------------------------------
+     * Consentono di applicare filtri a GET, POST, ecc.  
+     * Attenzione: usare con auto-routing disattivato.
      *
      * @var array<string, list<string>>
      */
     public array $methods = [];
 
     /**
-     * List of filter aliases that should run on any
-     * before or after URI patterns.
+     * -----------------------------------------------------------------
+     * Filtri per pattern URI
+     * -----------------------------------------------------------------
+     * Esecuzione condizionale in base al path richiesto.
      *
-     * Example:
-     * 'isLoggedIn' => ['before' => ['account/*', 'profiles/*']]
+     * Esempio:
+     *   'isLoggedIn' => ['before' => ['account/*', 'profiles/*']]
      *
      * @var array<string, array<string, list<string>>>
      */
